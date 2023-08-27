@@ -16,7 +16,7 @@ contract HelperConfig is Script {
 
     struct NetworkConfig {
         address priceFeed; //ETH/USD
-        //uint256 decimals;
+        //uint256 decimals ;
     }
 
     constructor() {
