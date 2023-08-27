@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "src/**"
-      - ".github/coverage.yaml"
+      - ".github/workflows/coverage.yaml"
       - "codecov.yml"
 
 jobs:
