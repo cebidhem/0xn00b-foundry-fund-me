@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - "src/**"
+      - "tests/**"
+      - "scripts/**"
       - ".github/workflows/coverage.yaml"
       - "codecov.yml"
 
