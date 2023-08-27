@@ -32,6 +32,17 @@ contract FundMeTest is Test {
         assertEq(fundMe.getOwner(), msg.sender);
     }
 
+    function testFallbackIsCalled() public {
+        vm.prank(USER);
+        (bool sent, ) = address(fundMe).call{value: SEND_VALUE}(
+            abi.encodeWithSignature("doesNotExist()")
+        );
+        require(sent, "Failed to send Ether");
+        address funder = fundMe.getFunder(0);
+        assertEq(funder, USER);
+        assertEq(fundMe.getAddressToAmountFunded(USER), SEND_VALUE);
+    }
+
     // must be a forked test
     function testPriceFeedVersionIsAccurate() public {
         uint256 version = fundMe.getVersion();
