@@ -155,4 +155,16 @@ contract FundMeTest is Test {
                 startingFundMeBalance + startingOwnerBalance
         );
     }
+
+    function testWithdrawNotOwner() public funded {
+        vm.expectRevert();
+        vm.prank(USER); // The next tx will be sent by the new USER
+        fundMe.withdraw();
+    }
+
+    function testWithdrawCheaperNotOwner() public funded {
+        vm.expectRevert();
+        vm.prank(USER); // The next tx will be sent by the new USER
+        fundMe.cheaperWithdraw();
+    }
 }
