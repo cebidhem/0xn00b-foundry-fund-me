@@ -1,4 +1,5 @@
 ## 0xn00b-foundry-fund-me
+[![codecov](https://codecov.io/gh/cebidhem/0xn00b-foundry-fund-me/graph/badge.svg?token=HZMCVF2FR1)](https://codecov.io/gh/cebidhem/0xn00b-foundry-fund-me)
 
 *This README is largely copied from Cyfrin Solidity and adjusted.*
 
