@@ -11,4 +11,12 @@ contract MockPriceConverter {
     ) external view returns (uint256) {
         return PriceConverter.getPrice(priceFeed);
     }
+
+    // Function to expose getConversionRate for testing purposes
+    function mockGetConversionRate(
+        uint256 ethAmount,
+        AggregatorV3Interface priceFeed
+    ) external view returns (uint256) {
+        return PriceConverter.getConversionRate(ethAmount, priceFeed);
+    }
 }

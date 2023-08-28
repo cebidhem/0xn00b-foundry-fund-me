@@ -10,7 +10,8 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 contract PriceConverterTest is Test {
     HelperConfig helperConfig = new HelperConfig();
     address ethUsdPriceFeed = helperConfig.activeNetworkConfig();
-    uint256 constant INITIAL_AMOUNT = 2000e8;
+    uint256 constant ETH_PRICE = 2000e8;
+    uint256 constant ETH_AMOUNT = 5;
 
     MockPriceConverter mockPriceConverter;
 
@@ -25,6 +26,17 @@ contract PriceConverterTest is Test {
         );
 
         console.log("Price: ", price);
-        assertEq(price, INITIAL_AMOUNT);
+        assertEq(price, ETH_PRICE);
+    }
+
+    function testGetConversionRate() external {
+        // Call the external getPrice function
+        uint256 conversionRate = mockPriceConverter.mockGetConversionRate(
+            ETH_AMOUNT,
+            AggregatorV3Interface(ethUsdPriceFeed)
+        );
+
+        console.log("Conversion rate: ", conversionRate);
+        assertEq(conversionRate, (ETH_AMOUNT * ETH_PRICE) / 1e8);
     }
 }
