@@ -4,6 +4,8 @@ pragma solidity 0.8.19;
 import {Test, console} from "forge-std/Test.sol";
 import {FundMe} from "../../src/FundMe.sol";
 import {DeployFundMe} from "../../script/DeployFundMe.s.sol";
+import {HelperConfig} from "../../script/HelperConfig.s.sol";
+import {MockFailedCall} from "../mocks/MockFailedCall.sol";
 
 contract FundMeTest is Test {
     FundMe fundMe;
@@ -166,5 +168,29 @@ contract FundMeTest is Test {
         vm.expectRevert();
         vm.prank(USER); // The next tx will be sent by the new USER
         fundMe.cheaperWithdraw();
+    }
+
+    function testRevertsIfWithdrawFail() public {
+        // Create a contract with no receive() or fallback()
+        MockFailedCall mockFailedCall = new MockFailedCall();
+
+        HelperConfig helperConfig = new HelperConfig(); // simulate (not real tx)
+        address ethUsdPriceFeed = helperConfig.activeNetworkConfig();
+
+        deal(address(mockFailedCall), STARTING_BALANCE);
+
+        vm.startPrank(address(mockFailedCall));
+        // set address(mock) as owner
+        FundMe mockFundMe = new FundMe(ethUsdPriceFeed);
+
+        mockFundMe.fund{value: SEND_VALUE}();
+
+        vm.expectRevert("Call failed");
+        mockFundMe.withdraw();
+
+        vm.expectRevert("Call failed");
+        mockFundMe.cheaperWithdraw();
+
+        vm.stopPrank();
     }
 }
