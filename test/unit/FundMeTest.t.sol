@@ -4,6 +4,8 @@ pragma solidity 0.8.19;
 import {Test, console} from "forge-std/Test.sol";
 import {FundMe} from "../../src/FundMe.sol";
 import {DeployFundMe} from "../../script/DeployFundMe.s.sol";
+import {HelperConfig} from "../../script/HelperConfig.s.sol";
+import {MockFailedCall} from "../mocks/MockFailedCall.sol";
 
 contract FundMeTest is Test {
     FundMe fundMe;
@@ -30,6 +32,17 @@ contract FundMeTest is Test {
         console.log("address(this)", address(this));
         console.log("fundMe.i_owner()", fundMe.getOwner());
         assertEq(fundMe.getOwner(), msg.sender);
+    }
+
+    function testFallbackIsCalled() public {
+        vm.prank(USER);
+        (bool sent, ) = address(fundMe).call{value: SEND_VALUE}(
+            abi.encodeWithSignature("doesNotExist()")
+        );
+        require(sent, "Failed to send Ether");
+        address funder = fundMe.getFunder(0);
+        assertEq(funder, USER);
+        assertEq(fundMe.getAddressToAmountFunded(USER), SEND_VALUE);
     }
 
     // must be a forked test
@@ -143,5 +156,41 @@ contract FundMeTest is Test {
             fundMe.getOwner().balance ==
                 startingFundMeBalance + startingOwnerBalance
         );
+    }
+
+    function testWithdrawNotOwner() public funded {
+        vm.expectRevert();
+        vm.prank(USER); // The next tx will be sent by the new USER
+        fundMe.withdraw();
+    }
+
+    function testWithdrawCheaperNotOwner() public funded {
+        vm.expectRevert();
+        vm.prank(USER); // The next tx will be sent by the new USER
+        fundMe.cheaperWithdraw();
+    }
+
+    function testRevertsIfWithdrawFail() public {
+        // Create a contract with no receive() or fallback()
+        MockFailedCall mockFailedCall = new MockFailedCall();
+
+        HelperConfig helperConfig = new HelperConfig(); // simulate (not real tx)
+        address ethUsdPriceFeed = helperConfig.activeNetworkConfig();
+
+        deal(address(mockFailedCall), STARTING_BALANCE);
+
+        vm.startPrank(address(mockFailedCall));
+        // set address(mock) as owner
+        FundMe mockFundMe = new FundMe(ethUsdPriceFeed);
+
+        mockFundMe.fund{value: SEND_VALUE}();
+
+        vm.expectRevert("Call failed");
+        mockFundMe.withdraw();
+
+        vm.expectRevert("Call failed");
+        mockFundMe.cheaperWithdraw();
+
+        vm.stopPrank();
     }
 }
